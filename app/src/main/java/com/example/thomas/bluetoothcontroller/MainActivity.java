@@ -111,11 +111,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             else if (BluetoothDevice.ACTION_FOUND.equals(action)){
                 Log.d(TAG, "onReceive: ACTION FOUND");
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-
-                mBTDevices.add(device);
-                Log.d(TAG, "onReceive: " + device.getName() + ": " +device.getAddress());
-                mDeviceListAdapter = new DeviceListAdapter(context, R.layout.device_adapter_view, mBTDevices);
-                listViewNewDevices.setAdapter(mDeviceListAdapter);
+                if(!mBTDevices.contains(device) && !devicesArray.contains(device) ) {
+                    mBTDevices.add(device);
+                    Log.d(TAG, "onReceive: " + device.getName() + ": " + device.getAddress());
+                    mDeviceListAdapter = new DeviceListAdapter(context, R.layout.device_adapter_view, mBTDevices);
+                    listViewNewDevices.setAdapter(mDeviceListAdapter);
+                }
             }
             else if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action))
             {
@@ -199,10 +200,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     private void getPairedDevices() {
+        listAdapter.clear();
         devicesArray = btAdapter.getBondedDevices();
         if (devicesArray.size() > 0) {
             for (BluetoothDevice device : devicesArray) {
                 listAdapter.add(device.getName() + "\n" + device.getAddress());
+                if(mBTDevices.contains(device)){
+                   mBTDevices.remove(device);
+                }
             }
         }
     }
@@ -224,6 +229,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             checkBTPermissions();
             btAdapter.startDiscovery();
         }
+        getPairedDevices();
     }
 
     public void startConnection(BluetoothDevice device){
